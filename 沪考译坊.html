@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#FCFCF8">
+<meta name="description" content="沪考译坊：输入 1–10 个单词，一键生成上海高考英语中译英翻译题，附参考答案与知识点讲解。">
+<title>沪考译坊 · 上海高考英语中译英命题器</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0%200%2064%2064'%3E%3Crect width='64' height='64' rx='14' fill='%23D1E043'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' font-family='sans-serif' fill='%231E1E1E'%3E译%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#FCFCF8;
+  --surface:#FFFFFF;
+  --surface-soft:#FDFDFA;
+  --ink:#1E1E1E;
+  --ink-2:#55524A;
+  --ink-3:#8B877B;
+  --line:#E8E5DA;
+  --line-strong:#D9D5C6;
+  --lime:#D1E043;
+  --lime-deep:#B8C92A;
+  --lime-soft:#F1F4D8;
+  --lime-softer:#FAFBEE;
+  --lime-border:#E4E9B4;
+  --olive:#4F5712;
+  --radius:18px;
+  --font: "Inter","SF Pro Text",-apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Source Han Sans SC",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+}
+::selection{background:rgba(209,224,67,.55)}
+button{font-family:inherit}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(252,252,248,.85);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.nav-inner{max-width:1120px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.logo-mark{
+  width:32px;height:32px;border-radius:9px;background:var(--lime);
+  display:grid;place-items:center;font-weight:700;font-size:16px;color:var(--ink);
+  box-shadow:inset 0 0 0 1px rgba(30,30,30,.08);
+}
+.logo-name{font-weight:700;font-size:16px;letter-spacing:.01em}
+.logo-sub{font-size:12px;color:var(--ink-3);border-left:1px solid var(--line-strong);padding-left:10px;margin-left:2px}
+.nav-actions{display:flex;align-items:center;gap:10px}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;border-radius:999px;
+  font-size:14.5px;font-weight:600;cursor:pointer;border:1px solid transparent;
+  padding:10px 22px;transition:background .15s ease,transform .08s ease,border-color .15s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--lime);color:var(--ink);box-shadow:0 1px 2px rgba(30,30,30,.08)}
+.btn-primary:hover{background:var(--lime-deep)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary.stop{background:var(--ink);color:var(--bg)}
+.btn-primary.stop:hover{background:#333}
+.btn-ghost{background:var(--surface);border-color:var(--line-strong);color:var(--ink-2)}
+.btn-ghost:hover{background:#F5F3EA}
+.btn-sm{padding:7px 16px;font-size:13.5px}
+.icon-btn{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);
+  background:var(--surface);border-radius:999px;padding:7px 15px;font-size:13.5px;
+  color:var(--ink-2);cursor:pointer;transition:background .15s ease;position:relative;
+}
+.icon-btn:hover{background:#F5F3EA}
+.icon-btn svg{width:15px;height:15px}
+.key-dot{width:7px;height:7px;border-radius:50%;background:#D8D4C6;display:inline-block}
+.key-dot.on{background:#A8BE2D}
+
+/* ---------- hero ---------- */
+.hero-wrap{
+  border-bottom:1px solid var(--line);
+  background-image:repeating-linear-gradient(transparent 0 31px,rgba(30,30,30,.035) 31px 32px);
+  -webkit-mask-image:linear-gradient(#000 55%,transparent);
+  mask-image:linear-gradient(#000 55%,transparent);
+}
+.hero{max-width:820px;margin:0 auto;padding:76px 24px 96px;text-align:center}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;background:var(--lime-soft);
+  border:1px solid var(--lime-border);color:var(--olive);border-radius:999px;
+  padding:6px 15px;font-size:13px;font-weight:600;letter-spacing:.02em;
+}
+.badge svg{width:13px;height:13px}
+h1{
+  font-size:clamp(30px,5vw,46px);line-height:1.28;letter-spacing:-.02em;
+  margin:22px 0 16px;font-weight:700;
+}
+h1 mark{background:linear-gradient(transparent 58%,var(--lime) 58%);color:inherit;padding:0 2px}
+.sub{color:var(--ink-2);font-size:16px;line-height:1.9;max-width:640px;margin:0 auto}
+.steps{margin-top:16px;color:var(--ink-3);font-size:13.5px;letter-spacing:.02em}
+.steps b{color:var(--ink-2);font-weight:600}
+
+/* ---------- composer ---------- */
+.composer{
+  max-width:860px;margin:-44px auto 0;background:var(--surface);
+  border:1px solid var(--line);border-radius:22px;padding:24px;
+  box-shadow:0 18px 44px rgba(30,30,30,.06);position:relative;
+}
+.field-label{font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
+.field-label .count{color:var(--ink-3);font-weight:500;font-size:12.5px}
+.chip-box{
+  border:1px solid var(--line);border-radius:14px;padding:9px;
+  display:flex;flex-wrap:wrap;gap:7px;background:var(--surface-soft);
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.chip-box:focus-within{border-color:#C6CD7E;box-shadow:0 0 0 3px rgba(209,224,67,.22)}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;background:#F2F0E6;
+  border:1px solid #E5E2D5;border-radius:999px;padding:5px 6px 5px 13px;
+  font-size:14px;color:var(--ink);animation:pop .18s ease;
+}
+.chip-x{
+  border:0;background:transparent;width:19px;height:19px;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;color:var(--ink-3);font-size:14px;line-height:1;
+}
+.chip-x:hover{background:#E2DFCE;color:var(--ink)}
+#wordInput{
+  flex:1;min-width:150px;border:0;outline:0;background:transparent;
+  font-size:15px;padding:6px 4px;color:var(--ink);font-family:inherit;
+}
+#wordInput::placeholder{color:#B9B5A6}
+.controls-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;flex-wrap:wrap}
+.count-pick{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.count-pick-label{font-size:13px;color:var(--ink-2);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface-soft)}
+.seg button{
+  border:0;background:transparent;border-radius:999px;padding:6px 16px;
+  font-size:14px;color:var(--ink-2);cursor:pointer;font-weight:500;transition:all .15s ease;
+}
+.seg button.active{background:var(--ink);color:var(--bg)}
+.count-hint{font-size:12.5px;color:var(--ink-3)}
+.samples{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--ink-3)}
+.sample-chip{
+  border:1px dashed var(--line-strong);background:transparent;border-radius:999px;
+  padding:5px 13px;font-size:13px;color:var(--ink-2);cursor:pointer;transition:all .15s ease;
+}
+.sample-chip:hover{border-color:var(--lime-deep);background:var(--lime-softer);border-style:solid}
+.no-key-note{
+  margin-top:16px;font-size:13px;color:#7A6A22;background:#FBF7E2;
+  border:1px solid #EFE4B8;border-radius:12px;padding:10px 14px;display:none;
+}
+.no-key-note a{color:#5D6614;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- workspace ---------- */
+.workspace{
+  max-width:1120px;margin:40px auto 0;padding:0 24px;
+  display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:24px;align-items:start;
+}
+.results-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.results-meta{font-size:13px;color:var(--ink-3)}
+.tb-actions{display:flex;gap:8px;flex-wrap:wrap}
+.mini-btn{
+  border:1px solid var(--line);background:var(--surface);border-radius:999px;
+  padding:5px 13px;font-size:12.5px;color:var(--ink-2);cursor:pointer;
+  display:inline-flex;gap:5px;align-items:center;transition:all .15s ease;
+}
+.mini-btn:hover{background:#F5F3EA}
+.mini-btn.ok{color:var(--olive);border-color:var(--lime-border);background:var(--lime-softer)}
+
+/* question card */
+.qcard{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px rgba(30,30,30,.03);
+  animation:pop .25s ease;
+}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.qcard-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;border-bottom:1px solid var(--line);background:var(--surface-soft);
+}
+.qnum{
+  display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;
+  color:var(--olive);background:var(--lime-soft);border:1px solid var(--lime-border);
+  padding:4px 13px;border-radius:999px;
+}
+.qcard-actions{display:flex;gap:8px}
+.qcard-body{padding:18px 20px 20px}
+.block-label{
+  display:inline-block;font-size:12px;font-weight:700;color:var(--ink-3);
+  background:#F2F0E6;border-radius:999px;padding:3px 11px;margin-bottom:8px;letter-spacing:.04em;
+}
+.block-label.lime{background:var(--lime-soft);color:var(--olive)}
+.q-text{font-size:17px;line-height:2;color:var(--ink)}
+.hint-pill{
+  background:var(--lime);border-radius:8px;padding:1px 10px;font-weight:700;
+  font-size:15px;color:var(--ink);white-space:nowrap;
+  box-shadow:inset 0 0 0 1px rgba(30,30,30,.07);
+}
+.a-box{background:var(--lime-softer);border:1px solid #EDF0CF;border-radius:14px;padding:13px 16px;margin-top:15px}
+.a-text{font-size:15.5px;line-height:1.9;color:#2C301A}
+.k-box{margin-top:15px}
+.k-text{font-size:14.5px;line-height:1.95;color:var(--ink-2);white-space:pre-line}
+.hide-answers .a-box,.hide-answers .k-box{display:none}
+.hidden-note{display:none;margin-top:15px;border:1.5px dashed var(--line-strong);border-radius:14px;padding:12px 16px;font-size:13px;color:var(--ink-3);text-align:center}
+.hide-answers .hidden-note{display:block}
+.cursor{
+  display:inline-block;width:8px;height:16px;background:var(--lime-deep);
+  margin-left:3px;animation:blink 1s steps(1) infinite;vertical-align:-2px;border-radius:2px;
+}
+@keyframes blink{50%{opacity:0}}
+
+/* empty / skeleton / error */
+.empty{
+  border:1.5px dashed var(--line-strong);border-radius:var(--radius);
+  padding:58px 24px;text-align:center;color:var(--ink-3);
+}
+.empty .e-mark{
+  width:54px;height:54px;margin:0 auto 16px;border-radius:16px;background:var(--lime-soft);
+  display:grid;place-items:center;font-size:22px;font-weight:700;color:var(--olive);
+}
+.empty p{font-size:14.5px;line-height:1.9}
+.empty .e-title{color:var(--ink-2);font-weight:600;font-size:15px;margin-bottom:4px}
+.skeleton-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin-bottom:16px;
+}
+.skeleton-tip{font-size:13.5px;color:var(--ink-3);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.spin{
+  width:14px;height:14px;border-radius:50%;border:2px solid var(--line-strong);
+  border-top-color:var(--lime-deep);animation:rot .8s linear infinite;display:inline-block;
+}
+@keyframes rot{to{transform:rotate(360deg)}}
+.shine-line{height:14px;border-radius:7px;margin-bottom:12px;
+  background:linear-gradient(90deg,#F3F1E7 25%,#FBFAF3 50%,#F3F1E7 75%);
+  background-size:200% 100%;animation:shine 1.4s infinite;
+}
+@keyframes shine{to{background-position:-200% 0}}
+.error-card{
+  background:#FBF3EE;border:1px solid #F0DCCF;border-radius:var(--radius);
+  padding:20px;color:#8C4A2B;font-size:14px;line-height:1.9;
+}
+.error-card b{display:block;margin-bottom:4px;font-size:15px}
+.error-card .mini-btn{margin-top:12px}
+.fallback-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;font-size:14px;line-height:1.9;color:var(--ink-2);white-space:pre-wrap;
+}
+
+/* ---------- history panel ---------- */
+.panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;position:sticky;top:84px;
+}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.panel-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.panel-title svg{width:14px;height:14px;color:var(--ink-3)}
+.clear-btn{font-size:12px;color:var(--ink-3);background:none;border:none;cursor:pointer}
+.clear-btn:hover{color:#B0432E}
+.h-item{padding:10px 12px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:background .12s ease}
+.h-item:hover{background:#F7F5EC}
+.h-words{font-size:13.5px;color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-meta{font-size:12px;color:var(--ink-3);margin-top:3px}
+.h-empty{font-size:13px;color:var(--ink-3);text-align:center;padding:22px 0}
+.panel-note{font-size:11.5px;color:var(--ink-3);margin-top:12px;line-height:1.7;border-top:1px dashed var(--line);padding-top:10px}
+
+/* ---------- footer ---------- */
+.footer{
+  margin-top:80px;border-top:1px solid var(--line);padding:28px 24px;
+  text-align:center;font-size:12.5px;color:var(--ink-3);line-height:1.9;
+}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(30,30,30,.42);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal.open{display:flex}
+.modal-card{
+  background:var(--bg);border:1px solid var(--line);border-radius:20px;width:560px;max-width:100%;
+  padding:28px;box-shadow:0 24px 64px rgba(0,0,0,.22);max-height:90vh;overflow:auto;
+  animation:pop .2s ease;
+}
+.m-title{font-size:17px;font-weight:700}
+.m-sub{font-size:13px;color:var(--ink-3);margin:4px 0 20px;line-height:1.7}
+.m-field{margin-bottom:15px}
+.m-field label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:7px}
+.m-input{
+  width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;
+  padding:10px 14px;font-size:14px;font-family:inherit;color:var(--ink);outline:none;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.m-input:focus{border-color:#C0CB5E;box-shadow:0 0 0 3px rgba(209,224,67,.25)}
+.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.preset{
+  border:1px solid var(--line);background:var(--surface);border-radius:999px;
+  padding:6px 14px;font-size:13px;cursor:pointer;color:var(--ink-2);transition:all .15s ease;
+}
+.preset:hover{border-color:var(--line-strong)}
+.preset.active{background:var(--lime-soft);border-color:var(--lime-border);color:var(--olive);font-weight:600}
+.m-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.m-note{font-size:12px;color:var(--ink-3);margin-top:14px;line-height:1.8}
+.m-note a{color:var(--olive);text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,90px);
+  background:var(--ink);color:var(--bg);border-radius:999px;padding:11px 22px;
+  font-size:14px;z-index:200;opacity:0;transition:all .28s ease;pointer-events:none;
+  box-shadow:0 10px 30px rgba(0,0,0,.22);max-width:88vw;
+}
+#toast.show{transform:translate(-50%,0);opacity:1}
+
+/* ---------- responsive ---------- */
+@media (max-width:960px){
+  .workspace{grid-template-columns:1fr}
+  .panel{position:static}
+  .logo-sub{display:none}
+}
+@media (max-width:560px){
+  .hero{padding:52px 20px 84px}
+  .composer{margin-left:16px;margin-right:16px;padding:18px}
+  .controls-row{flex-direction:column;align-items:stretch}
+  .controls-row .btn{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="logo" href="#" onclick="return false">
+      <span class="logo-mark">译</span>
+      <span class="logo-name">沪考译坊</span>
+      <span class="logo-sub">上海高考英语 · 中译英命题器</span>
+    </a>
+    <div class="nav-actions">
+      <button class="icon-btn" onclick="openSettings()" title="API 设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        设置 <span class="key-dot" id="keyDot"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="hero-wrap">
+  <section class="hero">
+    <span class="badge">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/></svg>
+      上海高考英语 · 中译英专项
+    </span>
+    <h1>输入几个单词，一键命制<mark>高考级</mark>翻译题</h1>
+    <p class="sub">沪考译坊是一款面向上海高考英语的翻译命题工具。只需输入 1–10 个单词，AI 即按照上海卷的难度与词汇标准，快速生成中译英翻译题、参考答案与知识点讲解。</p>
+    <p class="steps"><b>① 输入单词</b> &nbsp;→&nbsp; <b>② 选择题数</b> &nbsp;→&nbsp; <b>③ 一键生成题目 · 答案 · 讲解</b></p>
+  </section>
+</div>
+
+<main>
+  <section class="composer">
+    <div class="field-label">
+      <span>关键词（1–10 个单词或短语）</span>
+      <span class="count" id="wordCount">0 / 10</span>
+    </div>
+    <div class="chip-box" id="chipBox" onclick="document.getElementById('wordInput').focus()">
+      <input id="wordInput" type="text" placeholder="输入单词后按回车添加，如 insist、look forward to" autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="controls-row">
+      <div class="count-pick">
+        <span class="count-pick-label">题目数量</span>
+        <div class="seg" id="countSeg"></div>
+        <span class="count-hint" id="countHint"></span>
+      </div>
+      <button class="btn btn-primary" id="genBtn" onclick="generate()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/></svg>
+        <span id="genBtnText">生成题目</span>
+      </button>
+    </div>
+
+    <div class="samples" id="samples">
+      <span>试试示例：</span>
+      <button class="sample-chip" onclick="fillSample(0)">insist · despite · achieve</button>
+      <button class="sample-chip" onclick="fillSample(1)">so ... that · realize</button>
+      <button class="sample-chip" onclick="fillSample(2)">be supposed to · remind · which</button>
+    </div>
+
+    <div class="no-key-note" id="noKeyNote">
+      首次使用请先 <a onclick="openSettings()">配置 API Key</a>（支持通义千问 / DeepSeek / OpenAI 等兼容接口，Key 仅保存在本地浏览器）。
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div>
+      <div id="toolbar"></div>
+      <div id="results">
+        <div class="empty">
+          <div class="e-mark">译</div>
+          <p class="e-title">输入单词，点击「生成题目」</p>
+          <p>AI 将按照上海高考风格为你命制中译英翻译题，<br>并附上参考答案与知识点讲解。</p>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            历史记录
+          </span>
+          <button class="clear-btn" onclick="clearHistory()">清空</button>
+        </div>
+        <div id="historyList"><div class="h-empty">暂无记录</div></div>
+        <div class="panel-note">记录仅保存在本地浏览器，最多保留 30 条。AI 生成内容建议经教师审核后再用于教学。</div>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<footer class="footer">
+  沪考译坊 · 面向上海高考英语的中译英命题助手<br>
+  题目由 AI 生成，仅供教学与练习参考 · 你的 API Key 仅保存在本地浏览器，不会上传至任何服务器
+</footer>
+
+<!-- settings modal -->
+<div class="modal" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-card">
+    <div class="m-title">模型设置</div>
+    <div class="m-sub">网站通过 OpenAI 兼容接口调用大模型生成题目。选择服务商并填入你的 API Key 即可开始使用。</div>
+
+    <div class="preset-row" id="presetRow"></div>
+
+    <div class="m-field">
+      <label for="setBase">API Base URL</label>
+      <input class="m-input" id="setBase" type="text" placeholder="https://dashscope.aliyuncs.com/compatible-mode/v1" spellcheck="false">
+    </div>
+    <div class="m-field">
+      <label for="setModel">模型名称</label>
+      <input class="m-input" id="setModel" type="text" placeholder="qwen-plus" spellcheck="false">
+    </div>
+    <div class="m-field">
+      <label for="setKey">API Key</label>
+      <input class="m-input" id="setKey" type="password" placeholder="sk-..." spellcheck="false">
+    </div>
+
+    <div class="m-note">
+      API Key 仅保存在你本地浏览器的 localStorage 中，请求直接发送给所选服务商，不经过任何第三方服务器。<br>
+      Key 获取：<a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener">阿里云百炼（通义千问）</a> ·
+      <a href="https://platform.deepseek.com/" target="_blank" rel="noopener">DeepSeek</a> ·
+      <a href="https://platform.openai.com/" target="_blank" rel="noopener">OpenAI</a>
+    </div>
+
+    <div class="m-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeSettings()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">保存配置</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* ================= storage (guarded) ================= */
+const store = {
+  get(k, fallback){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
+/* ================= constants ================= */
+const PRESETS = [
+  { id:"dashscope", name:"通义千问", base:"https://dashscope.aliyuncs.com/compatible-mode/v1", model:"qwen-plus" },
+  { id:"deepseek",  name:"DeepSeek", base:"https://api.deepseek.com/v1", model:"deepseek-chat" },
+  { id:"openai",    name:"OpenAI",   base:"https://api.openai.com/v1",   model:"gpt-4o-mini" },
+  { id:"moonshot",  name:"Moonshot", base:"https://api.moonshot.cn/v1",  model:"moonshot-v1-8k" },
+  { id:"zhipu",     name:"智谱 GLM", base:"https://open.bigmodel.cn/api/paas/v4", model:"glm-4-flash" }
+];
+const SAMPLES = [
+  ["insist","despite","achieve"],
+  ["so ... that","realize"],
+  ["be supposed to","remind","which"]
+];
+const DEFAULT_SETTINGS = { base: PRESETS[0].base, model: PRESETS[0].model, key: "" };
+const MAX_WORDS = 10, MAX_HISTORY = 30;
+
+/* ================= state ================= */
+const state = {
+  words: [],
+  count: 1,
+  userPickedCount: false,
+  settings: Object.assign({}, DEFAULT_SETTINGS, store.get("hy_settings", {})),
+  history: store.get("hy_history", []),
+  generating: false,
+  abort: null,
+  currentRaw: "",
+  blocks: [],
+  lastParams: null,
+  ansHidden: false,
+  lastDuration: 0
+};
+
+/* ================= utils ================= */
+const $ = s => document.querySelector(s);
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+let toastTimer = 0;
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy");
+      ta.remove(); return ok;
+    }catch(e2){ return false; }
+  }
+}
+function fmtTime(ts){
+  const d = new Date(ts), p = n => String(n).padStart(2,"0");
+  return (d.getMonth()+1) + "月" + d.getDate() + "日 " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+
+/* ================= words input ================= */
+const wordInput = $("#wordInput");
+let composing = false;
+
+function addWord(w){
+  w = w.trim().replace(/\s+/g," ");
+  if(!w) return;
+  if(state.words.some(x => x.toLowerCase() === w.toLowerCase())) return;
+  if(state.words.length >= MAX_WORDS){ toast("最多输入 " + MAX_WORDS + " 个单词"); return; }
+  state.words.push(w);
+  renderWords(); updateAll();
+}
+function removeWord(i){
+  state.words.splice(i,1);
+  renderWords(); updateAll();
+}
+function commitInput(){
+  const v = wordInput.value;
+  wordInput.value = "";
+  addWord(v);
+}
+function renderWords(){
+  const box = $("#chipBox");
+  box.querySelectorAll(".chip").forEach(c => c.remove());
+  state.words.forEach((w,i) => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.innerHTML = escapeHtml(w) + '<button class="chip-x" title="删除" onclick="removeWord(' + i + ')">×</button>';
+    box.insertBefore(chip, wordInput);
+  });
+  $("#wordCount").textContent = state.words.length + " / " + MAX_WORDS;
+}
+wordInput.addEventListener("compositionstart", () => composing = true);
+wordInput.addEventListener("compositionend", () => composing = false);
+wordInput.addEventListener("keydown", e => {
+  if(composing || e.isComposing) return;
+  if(e.key === "Enter" || e.key === "," || e.key === "，"){ e.preventDefault(); commitInput(); }
+  else if(e.key === "Backspace" && !wordInput.value && state.words.length){
+    state.words.pop(); renderWords(); updateAll();
+  }
+});
+wordInput.addEventListener("input", () => {
+  if(composing) return;
+  const v = wordInput.value;
+  if(/[,，、;；]/.test(v)){
+    v.split(/[,，、;；]+/).forEach(t => addWord(t));
+    wordInput.value = "";
+  }
+});
+wordInput.addEventListener("paste", e => {
+  e.preventDefault();
+  const t = (e.clipboardData || window.clipboardData).getData("text");
+  t.split(/[\n,，、;；]+/).forEach(w => addWord(w));
+});
+function fillSample(i){
+  state.words = [];
+  SAMPLES[i].forEach(w => state.words.push(w));
+  renderWords(); updateAll();
+  toast("已填入示例单词，点击「生成题目」试试");
+}
+
+/* ================= count picker ================= */
+function buildCountSeg(){
+  const seg = $("#countSeg");
+  seg.innerHTML = "";
+  for(let n = 1; n <= 5; n++){
+    const b = document.createElement("button");
+    b.textContent = n + " 题";
+    b.onclick = () => { state.count = n; state.userPickedCount = true; syncCountUI(); };
+    seg.appendChild(b);
+  }
+}
+function recommendCount(){
+  return Math.max(1, Math.min(5, Math.ceil(state.words.length / 3)));
+}
+function syncCountUI(){
+  const btns = $("#countSeg").children;
+  for(let i = 0; i < btns.length; i++) btns[i].classList.toggle("active", i + 1 === state.count);
+  $("#countHint").textContent = state.words.length ? "建议 " + recommendCount() + " 题" : "";
+}
+function updateAll(){
+  if(state.words.length && !state.userPickedCount) state.count = recommendCount();
+  syncCountUI();
+  $("#genBtn").disabled = state.generating ? false : !state.words.length;
+}
+
+/* ================= settings ================= */
+function renderPresets(){
+  const row = $("#presetRow");
+  row.innerHTML = "";
+  PRESETS.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "preset";
+    b.textContent = p.name;
+    b.onclick = () => {
+      $("#setBase").value = p.base;
+      $("#setModel").value = p.model;
+      highlightPreset();
+    };
+    row.appendChild(b);
+  });
+  highlightPreset();
+}
+function highlightPreset(){
+  const base = $("#setBase").value.trim();
+  const btns = $("#presetRow").children;
+  PRESETS.forEach((p,i) => btns[i].classList.toggle("active", p.base === base));
+}
+$("#setBase").addEventListener("input", highlightPreset);
+function openSettings(){
+  $("#setBase").value = state.settings.base;
+  $("#setModel").value = state.settings.model;
+  $("#setKey").value = state.settings.key;
+  highlightPreset();
+  $("#settingsModal").classList.add("open");
+}
+function closeSettings(){ $("#settingsModal").classList.remove("open"); }
+function saveSettings(){
+  state.settings.base = $("#setBase").value.trim() || DEFAULT_SETTINGS.base;
+  state.settings.model = $("#setModel").value.trim() || DEFAULT_SETTINGS.model;
+  state.settings.key = $("#setKey").value.trim();
+  store.set("hy_settings", state.settings);
+  updateKeyIndicator();
+  closeSettings();
+  toast("配置已保存");
+}
+function updateKeyIndicator(){
+  $("#keyDot").classList.toggle("on", !!state.settings.key);
+  $("#noKeyNote").style.display = state.settings.key ? "none" : "block";
+}
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeSettings(); });
+
+/* ================= prompt ================= */
+function buildMessages(words, n){
+  const sys = "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨、难度精准贴合上海高考。";
+  const user = "请根据以下单词/短语，命制 " + n + " 道上海高考英语\u201C中译英\u201D翻译题。\n\n" +
+"给定单词：" + words.join("、") + "\n\n" +
+"命题要求：\n" +
+"1. 每题为一个中文句子，句末用圆括号标注英文提示词；提示词须取自上述给定单词（用原形），且所有给定单词都必须被用到（可合理分布在不同题目中）。参考答案中所给词可按语法规则作词形变化（时态、语态、单复数、非谓语形式等）或词性转换，但不得改写为派生词（例如不得加词缀把 success 写成 successful、把 happy 写成 happiness），且所给词在整句答案中只能出现一次。\n" +
+"2. 中文句长约 15\u201330 字，内容积极向上、逻辑通顺、贴近学习生活或社会话题，各题题材尽量不重复。\n" +
+"3. 难度对齐上海高考：参考答案约 10\u201325 词，词汇以上海高考考纲范围为主，避免生僻词；每题须自然体现至少一个高考核心语法或高级表达（如定语从句、名词性从句、非谓语动词、倒装句、强调句、虚拟语气、形式主语 it、分词作状语等）。\n" +
+"4. 参考答案必须语法完全正确、表达地道，与中文句意严格对应。\n" +
+"5. 知识点讲解：点明本题考查的核心词组、句型或语法点，给出简明解析，并可附一条易错提醒。\n\n" +
+"严格按照以下格式输出，不要输出任何其他内容：\n" +
+"### 第1题\n" +
+"**【题目】**（此处为中文句子，句末括号内为英文提示词）\n" +
+"**【参考答案】**（此处为英文翻译）\n" +
+"**【知识点讲解】**（此处为讲解内容）\n" +
+"（共 " + n + " 题，依次类推）";
+  return [{ role:"system", content:sys }, { role:"user", content:user }];
+}
+
+/* ================= streaming ================= */
+async function streamChat(opts){
+  const url = opts.base.replace(/\/+$/,"") + "/chat/completions";
+  const res = await fetch(url, {
+    method:"POST",
+    signal: opts.signal,
+    headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + opts.key },
+    body: JSON.stringify({
+      model: opts.model,
+      messages: opts.messages,
+      temperature: 0.9,
+      max_tokens: 3000,
+      stream: true
+    })
+  });
+  if(!res.ok){
+    let msg = "HTTP " + res.status;
+    try{
+      const j = await res.json();
+      msg = (j.error && (j.error.message || j.error.msg)) || j.message || msg;
+    }catch(e){}
+    const err = new Error(msg);
+    err.status = res.status;
+    throw err;
+  }
+  if(!res.body){
+    const j = await res.json();
+    opts.onChunk((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "");
+    return;
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  for(;;){
+    const { done, value } = await reader.read();
+    if(done) break;
+    buf += dec.decode(value, { stream:true });
+    const lines = buf.split("\n");
+    buf = lines.pop();
+    for(const line of lines){
+      const t = line.trim();
+      if(!t || !t.startsWith("data:")) continue;
+      const data = t.slice(5).trim();
+      if(data === "[DONE]") continue;
+      try{
+        const j = JSON.parse(data);
+        const delta = j.choices && j.choices[0] && j.choices[0].delta && j.choices[0].delta.content;
+        if(delta) opts.onChunk(delta);
+      }catch(e){}
+    }
+  }
+}
+
+/* ================= parser ================= */
+function parseSection(seg){
+  const find = re => { const m = re.exec(seg); return m ? { start:m.index, end:m.index + m[0].length } : null; };
+  const marks = [
+    { key:"q", pos: find(/【题\s*目】/) },
+    { key:"a", pos: find(/【参\s*考\s*答\s*案】|【答\s*案】/) },
+    { key:"k", pos: find(/【知识点讲解】|【知\s*识\s*点】|【讲\s*解】/) }
+  ].filter(x => x.pos).sort((x,y) => x.pos.start - y.pos.start);
+  const out = { q:"", a:"", k:"" };
+  marks.forEach((m,i) => {
+    const end = i + 1 < marks.length ? marks[i+1].pos.start : seg.length;
+    out[m.key] = seg.slice(m.pos.end, end).trim();
+  });
+  return out;
+}
+function parseAll(raw){
+  const t = String(raw || "").replace(/\*\*/g,"").replace(/```[a-z]*|```/gi,"");
+  const headerRe = /^#{0,3}\s*第\s*[一二三四五六七八九十\d]+\s*题[：:]?/gm;
+  const segs = t.split(headerRe);
+  const blocks = [];
+  for(const seg of segs){
+    if(!/【题\s*目】/.test(seg)) continue;
+    const starts = [];
+    let m;
+    const re = /【题\s*目】/g;
+    while((m = re.exec(seg)) !== null) starts.push(m.index);
+    for(let i = 0; i < starts.length; i++){
+      const s = seg.slice(starts[i], i + 1 < starts.length ? starts[i+1] : seg.length);
+      blocks.push(parseSection(s));
+    }
+  }
+  return blocks;
+}
+
+/* ================= rendering ================= */
+function renderQ(text){
+  let h = escapeHtml(text.trim());
+  h = h.replace(/[（(]\s*([A-Za-z][A-Za-z .'\-]*?)\s*[)）]/g, (m,w) => '<span class="hint-pill">' + w.trim() + "</span>");
+  h = h.replace(/\n/g,"<br>");
+  return h;
+}
+function cardHtml(b, i, live){
+  const cursor = '<span class="cursor"></span>';
+  return '<div class="qcard">' +
+    '<div class="qcard-head">' +
+      '<span class="qnum">第 ' + (i+1) + ' 题</span>' +
+      '<div class="qcard-actions"><button class="mini-btn" onclick="copyCard(' + i + ',this)">复制本题</button></div>' +
+    '</div>' +
+    '<div class="qcard-body">' +
+      '<div><span class="block-label">题目</span>' +
+        '<div class="q-text">' + (b.q ? renderQ(b.q) : "") + (live && !b.a ? cursor : "") + '</div></div>' +
+      (b.a ? '<div class="a-box"><span class="block-label lime">参考答案</span>' +
+        '<div class="a-text">' + escapeHtml(b.a) + (live && !b.k ? cursor : "") + '</div></div>' : "") +
+      (b.k ? '<div class="k-box"><span class="block-label">知识点讲解</span>' +
+        '<div class="k-text">' + escapeHtml(b.k) + (live ? cursor : "") + '</div></div>' : "") +
+      '<div class="hidden-note">参考答案与知识点讲解已隐藏，点击上方「显示答案与讲解」查看</div>' +
+    '</div>' +
+  '</div>';
+}
+let raf = 0;
+function scheduleRender(){
+  if(raf) return;
+  raf = requestAnimationFrame(() => { raf = 0; renderNow(); });
+}
+function renderNow(){
+  const blocks = parseAll(state.currentRaw);
+  if(!blocks.length) return;
+  state.blocks = blocks;
+  $("#results").innerHTML = blocks.map((b,i) => cardHtml(b,i,true)).join("");
+  $("#results").classList.toggle("hide-answers", state.ansHidden);
+}
+function renderFinal(){
+  if(!state.blocks.length) return;
+  $("#results").innerHTML = state.blocks.map((b,i) => cardHtml(b,i,false)).join("");
+  $("#results").classList.toggle("hide-answers", state.ansHidden);
+}
+function renderToolbar(words, n, sec, fromHistory){
+  $("#toolbar").innerHTML =
+    '<div class="results-toolbar">' +
+      '<div class="results-meta">' + (fromHistory ? "历史记录 · " : "") + "共 " + n + " 题" +
+        (sec != null ? " · 用时 " + sec + "s" : "") + " · 关键词：" + escapeHtml(words.join("、")) + '</div>' +
+      '<div class="tb-actions">' +
+        '<button class="mini-btn" onclick="copyQuestionsOnly(this)">仅复制题干</button>' +
+        '<button class="mini-btn" onclick="copyAll(this)">复制全部（含答案）</button>' +
+        '<button class="mini-btn" id="toggleAnsBtn" onclick="toggleAnswers()">' + (state.ansHidden ? "显示答案与讲解" : "隐藏答案与讲解") + '</button>' +
+        (fromHistory ? "" : '<button class="mini-btn" onclick="regenerate()">↻ 重新生成</button>') +
+      '</div>' +
+    '</div>';
+}
+function showSkeleton(){
+  $("#toolbar").innerHTML = "";
+  $("#results").innerHTML =
+    '<div class="skeleton-card">' +
+      '<div class="skeleton-tip"><span class="spin"></span>AI 正在按上海高考风格构思题目…</div>' +
+      '<div class="shine-line" style="width:88%"></div>' +
+      '<div class="shine-line" style="width:96%"></div>' +
+      '<div class="shine-line" style="width:60%"></div>' +
+      '<div class="shine-line" style="width:74%"></div>' +
+    '</div>';
+}
+function showEmpty(){
+  $("#toolbar").innerHTML = "";
+  $("#results").innerHTML =
+    '<div class="empty"><div class="e-mark">译</div>' +
+    '<p class="e-title">输入单词，点击「生成题目」</p>' +
+    '<p>AI 将按照上海高考风格为你命制中译英翻译题，<br>并附上参考答案与知识点讲解。</p></div>';
+}
+function showError(e){
+  let tip = "请稍后重试。";
+  if(e.status === 401 || e.status === 403) tip = "API Key 无效或未授权，请点击右上角「设置」检查。";
+  else if(e.status === 404) tip = "接口或模型不存在，请在「设置」中检查 API 地址与模型名称。";
+  else if(e.status === 429) tip = "请求过于频繁或账户额度不足，请稍后再试。";
+  else if(e instanceof TypeError) tip = "网络请求失败：请检查网络连接与 API 地址，或确认该服务商支持浏览器跨域调用。";
+  $("#results").innerHTML =
+    '<div class="error-card"><b>生成失败</b>' + escapeHtml(e.message || String(e)) + '<br>' + tip +
+    '<br><button class="mini-btn" onclick="generate()">重试</button></div>';
+}
+
+/* ================= generate flow ================= */
+let genStart = 0;
+function setGenerating(on){
+  state.generating = on;
+  const btn = $("#genBtn"), txt = $("#genBtnText");
+  btn.classList.toggle("stop", on);
+  txt.textContent = on ? "停止生成" : "生成题目";
+  btn.disabled = on ? false : !state.words.length;
+}
+async function generate(){
+  if(state.generating){
+    if(state.abort) state.abort.abort();
+    return;
+  }
+  if(!state.words.length){ toast("请先输入至少 1 个单词"); return; }
+  if(!state.settings.key){ openSettings(); toast("请先填写 API Key"); return; }
+
+  const params = { words: state.words.slice(), count: state.count };
+  state.lastParams = params;
+  state.currentRaw = "";
+  state.blocks = [];
+  state.ansHidden = true;
+  genStart = Date.now();
+  setGenerating(true);
+  showSkeleton();
+
+  const ctrl = new AbortController();
+  state.abort = ctrl;
+  try{
+    await streamChat({
+      base: state.settings.base,
+      key: state.settings.key,
+      model: state.settings.model,
+      signal: ctrl.signal,
+      messages: buildMessages(params.words, params.count),
+      onChunk(d){ state.currentRaw += d; scheduleRender(); }
+    });
+    finishGeneration();
+  }catch(e){
+    if(e && e.name === "AbortError"){
+      finishGeneration(true);
+      if(state.blocks.length) toast("已停止，保留已生成内容");
+    }else{
+      setGenerating(false);
+      showError(e);
+      toast("生成失败");
+    }
+  }
+}
+function finishGeneration(aborted){
+  setGenerating(false);
+  renderNow();
+  state.lastDuration = ((Date.now() - genStart) / 1000).toFixed(1);
+  if(state.blocks.length){
+    renderFinal();
+    renderToolbar(state.lastParams.words, state.blocks.length, state.lastDuration, false);
+    if(!aborted || state.currentRaw.trim()){
+      pushHistory({ ts: Date.now(), words: state.lastParams.words, count: state.blocks.length, raw: state.currentRaw });
+    }
+  }else if(state.currentRaw.trim()){
+    $("#results").innerHTML =
+      '<div class="fallback-card"><b style="color:var(--ink)">模型输出（未能解析为标准格式）</b><br><br>' +
+      escapeHtml(state.currentRaw) + '</div>';
+  }else{
+    showEmpty();
+    if(!aborted) toast("未获得有效输出，请重试");
+  }
+}
+function regenerate(){
+  if(state.lastParams){
+    state.words = state.lastParams.words.slice();
+    state.count = state.lastParams.count;
+    state.userPickedCount = true;
+    renderWords(); syncCountUI();
+  }
+  generate();
+}
+
+/* ================= copy ================= */
+function blockToText(b, i){
+  return "第" + (i+1) + "题\n【题目】" + b.q + "\n【参考答案】" + b.a + "\n【知识点讲解】" + b.k;
+}
+function copyCard(i, el){
+  const b = state.blocks[i];
+  if(!b) return;
+  copyText(blockToText(b,i)).then(ok => flashCopy(el, ok));
+}
+function copyQuestionsOnly(el){
+  const t = state.blocks.map((b,i) => (i+1) + ". " + b.q).join("\n");
+  copyText(t).then(ok => flashCopy(el, ok));
+}
+function copyAll(el){
+  const t = state.blocks.map((b,i) => blockToText(b,i)).join("\n\n");
+  copyText(t).then(ok => flashCopy(el, ok));
+}
+function flashCopy(el, ok){
+  if(!el) return;
+  if(!ok){ toast("复制失败，请手动选择文本复制"); return; }
+  const old = el.textContent;
+  el.textContent = "已复制 ✓";
+  el.classList.add("ok");
+  setTimeout(() => { el.textContent = old; el.classList.remove("ok"); }, 1600);
+}
+function toggleAnswers(){
+  state.ansHidden = !state.ansHidden;
+  $("#results").classList.toggle("hide-answers", state.ansHidden);
+  const b = $("#toggleAnsBtn");
+  if(b) b.textContent = state.ansHidden ? "显示答案与讲解" : "隐藏答案与讲解";
+}
+
+/* ================= history ================= */
+function pushHistory(item){
+  state.history.unshift(item);
+  if(state.history.length > MAX_HISTORY) state.history = state.history.slice(0, MAX_HISTORY);
+  store.set("hy_history", state.history);
+  renderHistory();
+}
+function renderHistory(){
+  const list = $("#historyList");
+  if(!state.history.length){ list.innerHTML = '<div class="h-empty">暂无记录</div>'; return; }
+  list.innerHTML = state.history.map((h,i) =>
+    '<div class="h-item" onclick="loadHistory(' + i + ')">' +
+      '<div class="h-words">' + escapeHtml(h.words.join("、")) + '</div>' +
+      '<div class="h-meta">' + fmtTime(h.ts) + ' · ' + h.count + ' 题</div>' +
+    '</div>'
+  ).join("");
+}
+function loadHistory(i){
+  const h = state.history[i];
+  if(!h) return;
+  state.currentRaw = h.raw;
+  state.blocks = parseAll(h.raw);
+  if(!state.blocks.length){ toast("该记录无法解析"); return; }
+  state.ansHidden = true;
+  renderFinal();
+  renderToolbar(h.words, state.blocks.length, null, true);
+  toast("已载入历史记录");
+  if(window.innerWidth < 960) $("#toolbar").scrollIntoView({ behavior:"smooth" });
+}
+function clearHistory(){
+  if(!state.history.length) return;
+  if(!confirm("确定清空全部历史记录？")) return;
+  state.history = [];
+  store.set("hy_history", state.history);
+  renderHistory();
+  toast("历史记录已清空");
+}
+
+/* ================= init ================= */
+buildCountSeg();
+renderPresets();
+renderWords();
+renderHistory();
+updateAll();
+updateKeyIndicator();
+</script>
+</body>
+</html>
