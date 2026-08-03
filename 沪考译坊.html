@@ -135,6 +135,7 @@ h1 mark{background:linear-gradient(transparent 58%,var(--lime) 58%);color:inheri
 }
 #wordInput::placeholder{color:#B9B5A6}
 .controls-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;flex-wrap:wrap}
+.diff-row{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
 .count-pick{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .count-pick-label{font-size:13px;color:var(--ink-2);font-weight:600}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface-soft)}
@@ -205,6 +206,7 @@ h1 mark{background:linear-gradient(transparent 58%,var(--lime) 58%);color:inheri
 .a-text{font-size:15.5px;line-height:1.9;color:#2C301A}
 .k-box{margin-top:15px}
 .k-text{font-size:14.5px;line-height:1.95;color:var(--ink-2);white-space:pre-line}
+.colloc{background:linear-gradient(transparent 42%,rgba(209,224,67,.85) 42%);padding:0 3px;font-weight:600;color:#3A3F10;border-radius:2px}
 .hide-answers .a-box,.hide-answers .k-box{display:none}
 .hidden-note{display:none;margin-top:15px;border:1.5px dashed var(--line-strong);border-radius:14px;padding:12px 16px;font-size:13px;color:var(--ink-3);text-align:center}
 .hide-answers .hidden-note{display:block}
@@ -367,6 +369,12 @@ h1 mark{background:linear-gradient(transparent 58%,var(--lime) 58%);color:inheri
       <input id="wordInput" type="text" placeholder="输入单词后按回车添加，如 insist、look forward to" autocomplete="off" spellcheck="false">
     </div>
 
+    <div class="diff-row">
+      <span class="count-pick-label">难度</span>
+      <div class="seg" id="diffSeg"></div>
+      <span class="count-hint" id="diffHint"></span>
+    </div>
+
     <div class="controls-row">
       <div class="count-pick">
         <span class="count-pick-label">题目数量</span>
@@ -492,6 +500,7 @@ const state = {
   words: [],
   count: 1,
   userPickedCount: false,
+  difficulty: "adv",
   settings: Object.assign({}, DEFAULT_SETTINGS, store.get("hy_settings", {})),
   history: store.get("hy_history", []),
   generating: false,
@@ -619,6 +628,25 @@ function updateAll(){
   $("#genBtn").disabled = state.generating ? false : !state.words.length;
 }
 
+/* ================= difficulty ================= */
+function initDiffSeg(){
+  const seg = $("#diffSeg");
+  [["base","基础版"],["adv","高阶版"]].forEach(pair => {
+    const b = document.createElement("button");
+    b.textContent = pair[1];
+    b.onclick = () => { state.difficulty = pair[0]; updateDiffUI(); };
+    seg.appendChild(b);
+  });
+  updateDiffUI();
+}
+function updateDiffUI(){
+  const btns = $("#diffSeg").children;
+  for(let i = 0; i < btns.length; i++) btns[i].classList.toggle("active", (i === 0) === (state.difficulty === "base"));
+  $("#diffHint").textContent = state.difficulty === "base"
+    ? "基础难度：句式规范、贴近生活，适合夯实基础"
+    : "高阶难度：内容丰富、句型综合，适合冲刺提分";
+}
+
 /* ================= settings ================= */
 function renderPresets(){
   const row = $("#presetRow");
@@ -667,15 +695,24 @@ document.addEventListener("keydown", e => { if(e.key === "Escape") closeSettings
 
 /* ================= prompt ================= */
 function buildMessages(words, n){
-  const sys = "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨，句子内容丰富、语义层次分明、富有文学质感与思想深度，难度精准贴合上海高考中较难的翻译题。";
+  const adv = state.difficulty !== "base";
+  const sys = adv
+    ? "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨，句子内容丰富、语义层次分明、富有文学质感与思想深度，难度精准贴合上海高考中较难的翻译题。"
+    : "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨、句式规范清晰，难度贴合上海高考基础题，适合基础薄弱的学生练手。";
   const user = "请根据以下单词/短语，命制 " + n + " 道上海高考英语\u201C中译英\u201D翻译题。\n\n" +
 "给定单词：" + words.join("、") + "\n\n" +
 "命题要求：\n" +
 "1. 每题为一个中文句子，句末用圆括号标注英文提示词；提示词须取自上述给定单词（用原形），且所有给定单词都必须被用到（可合理分布在不同题目中）。参考答案中所给词可按语法规则作词形变化（时态、语态、单复数、非谓语形式等）或词性转换，但不得改写为派生词（例如不得加词缀把 success 写成 successful、把 happy 写成 happiness），且所给词在整句答案中只能出现一次。\n" +
-"2. 中文句子内容要丰富，有一定的文学质感或思想深度，主题可取自坚持与成长、人文关怀、社会观察、科技精神、文化传承等；句子须由多个语义层次构成（如\u201C让步/条件 + 行动 + 状态 + 目的/结果\u201D），句长约 25\u201345 字，逻辑通顺、积极向上，各题题材尽量不重复。参考例句的水准：纵使天寒地冻，树木也从不放弃生长，依然默默挺立，静候春光。（cease）\n" +
-"3. 难度对齐上海高考中较难的翻译题：参考答案约 20\u201335 词，词汇以上海高考考纲范围为主、避免生僻词；每题须综合、自然地运用至少两个核心语法或高级表达（如让步状语从句、倒装句、强调句、非谓语动词与分词短语作伴随状语、定语从句、名词性从句、虚拟语气、形式主语 it、并列结构、独立主格等），且各题所用句型尽量多样、彼此不重复。\n" +
-"4. 参考答案必须语法完全正确、表达地道，与中文句意严格对应，完整再现原句的各个语义层次与语言气势，不得简化漏译。\n" +
-"5. 知识点讲解：逐一点明本题考查的核心词组、句型与语法点，给出简明解析，并可附一条易错提醒。\n\n" +
+"2. " + (adv
+  ? "中文句子内容要丰富，有一定的文学质感或思想深度，主题可取自坚持与成长、人文关怀、社会观察、科技精神、文化传承等；句子须由多个语义层次构成（如\u201C让步/条件 + 行动 + 状态 + 目的/结果\u201D），句长约 25\u201345 字，逻辑通顺、积极向上，各题题材尽量不重复。参考例句的水准：纵使天寒地冻，树木也从不放弃生长，依然默默挺立，静候春光。（cease）"
+  : "中文句长约 15\u201330 字，内容积极向上、逻辑通顺、贴近学习生活或社会话题，句式清晰规范，各题题材尽量不重复。") + "\n" +
+"3. " + (adv
+  ? "难度对齐上海高考中较难的翻译题：参考答案约 20\u201335 词，词汇以上海高考考纲范围为主、避免生僻词；每题须综合、自然地运用至少两个核心语法或高级表达（如让步状语从句、倒装句、强调句、非谓语动词与分词短语作伴随状语、定语从句、名词性从句、虚拟语气、形式主语 it、并列结构、独立主格等），且各题所用句型尽量多样、彼此不重复。"
+  : "难度对齐上海高考基础翻译题：参考答案约 10\u201320 词，词汇以上海高考考纲范围为主，避免生僻词；每题须自然体现至少一个高考核心语法或常用句型（如定语从句、名词性从句、非谓语动词、倒装句、强调句、虚拟语气、形式主语 it、分词作状语等）。") + "\n" +
+"4. " + (adv
+  ? "参考答案必须语法完全正确、表达地道，与中文句意严格对应，完整再现原句的各个语义层次与语言气势，不得简化漏译。"
+  : "参考答案必须语法完全正确、表达地道，与中文句意严格对应。") + "\n" +
+"5. 知识点讲解：逐一点明本题考查的核心词组、句型与语法点，给出简明解析，并可附一条易错提醒；同时务必列出该提示词在上海高考中高频出现的固定搭配（Collocations，每题 1\u20133 个，含短语或句型框架），每个搭配用『』括起（例如『insist on doing sth.』），以便页面高亮显示。\n\n" +
 "严格按照以下格式输出，不要输出任何其他内容：\n" +
 "### 第1题\n" +
 "**【题目】**（此处为中文句子，句末括号内为英文提示词）\n" +
@@ -773,6 +810,11 @@ function parseAll(raw){
 }
 
 /* ================= rendering ================= */
+function renderK(text){
+  let h = escapeHtml(text);
+  h = h.replace(/『([^』]*)』/g, '<span class="colloc">$1</span>');
+  return h;
+}
 function renderQ(text){
   let h = escapeHtml(text.trim());
   h = h.replace(/[（(]\s*([A-Za-z][A-Za-z .'\-]*?)\s*[)）]/g, (m,w) => '<span class="hint-pill">' + w.trim() + "</span>");
@@ -792,7 +834,7 @@ function cardHtml(b, i, live){
       (b.a ? '<div class="a-box"><span class="block-label lime">参考答案</span>' +
         '<div class="a-text">' + escapeHtml(b.a) + (live && !b.k ? cursor : "") + '</div></div>' : "") +
       (b.k ? '<div class="k-box"><span class="block-label">知识点讲解</span>' +
-        '<div class="k-text">' + escapeHtml(b.k) + (live ? cursor : "") + '</div></div>' : "") +
+        '<div class="k-text">' + renderK(b.k) + (live ? cursor : "") + '</div></div>' : "") +
       '<div class="hidden-note">参考答案与知识点讲解已隐藏，点击上方「显示答案与讲解」查看</div>' +
     '</div>' +
   '</div>';
@@ -814,10 +856,10 @@ function renderFinal(){
   $("#results").innerHTML = state.blocks.map((b,i) => cardHtml(b,i,false)).join("");
   $("#results").classList.toggle("hide-answers", state.ansHidden);
 }
-function renderToolbar(words, n, sec, fromHistory){
+function renderToolbar(words, n, sec, fromHistory, diff){
   $("#toolbar").innerHTML =
     '<div class="results-toolbar">' +
-      '<div class="results-meta">' + (fromHistory ? "历史记录 · " : "") + "共 " + n + " 题" +
+      '<div class="results-meta">' + (fromHistory ? "历史记录 · " : "") + "共 " + n + " 题 · " + (diff === "base" ? "基础版" : "高阶版") +
         (sec != null ? " · 用时 " + sec + "s" : "") + " · 关键词：" + escapeHtml(words.join("、")) + '</div>' +
       '<div class="tb-actions">' +
         '<button class="mini-btn" onclick="copyQuestionsOnly(this)">仅复制题干</button>' +
@@ -873,7 +915,7 @@ async function generate(){
   if(!state.words.length){ toast("请先输入至少 1 个单词"); return; }
   if(!state.settings.key){ openSettings(); toast("请先填写 API Key"); return; }
 
-  const params = { words: state.words.slice(), count: state.count };
+  const params = { words: state.words.slice(), count: state.count, difficulty: state.difficulty };
   state.lastParams = params;
   state.currentRaw = "";
   state.blocks = [];
@@ -911,9 +953,9 @@ function finishGeneration(aborted){
   state.lastDuration = ((Date.now() - genStart) / 1000).toFixed(1);
   if(state.blocks.length){
     renderFinal();
-    renderToolbar(state.lastParams.words, state.blocks.length, state.lastDuration, false);
+    renderToolbar(state.lastParams.words, state.blocks.length, state.lastDuration, false, state.lastParams.difficulty);
     if(!aborted || state.currentRaw.trim()){
-      pushHistory({ ts: Date.now(), words: state.lastParams.words, count: state.blocks.length, raw: state.currentRaw });
+      pushHistory({ ts: Date.now(), words: state.lastParams.words, count: state.blocks.length, difficulty: state.lastParams.difficulty, raw: state.currentRaw });
     }
   }else if(state.currentRaw.trim()){
     $("#results").innerHTML =
@@ -936,7 +978,7 @@ function regenerate(){
 
 /* ================= copy ================= */
 function blockToText(b, i){
-  return "第" + (i+1) + "题\n【题目】" + b.q + "\n【参考答案】" + b.a + "\n【知识点讲解】" + b.k;
+  return "第" + (i+1) + "题\n【题目】" + b.q + "\n【参考答案】" + b.a + "\n【知识点讲解】" + b.k.replace(/『|』/g, "");
 }
 function copyCard(i, el){
   const b = state.blocks[i];
@@ -991,7 +1033,7 @@ function loadHistory(i){
   if(!state.blocks.length){ toast("该记录无法解析"); return; }
   state.ansHidden = true;
   renderFinal();
-  renderToolbar(h.words, state.blocks.length, null, true);
+  renderToolbar(h.words, state.blocks.length, null, true, h.difficulty);
   toast("已载入历史记录");
   if(window.innerWidth < 960) $("#toolbar").scrollIntoView({ behavior:"smooth" });
 }
@@ -1006,6 +1048,7 @@ function clearHistory(){
 
 /* ================= init ================= */
 buildCountSeg();
+initDiffSeg();
 renderPresets();
 renderWords();
 renderHistory();
