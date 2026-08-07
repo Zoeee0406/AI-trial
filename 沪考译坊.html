@@ -492,6 +492,16 @@ const SAMPLES = [
   ["so ... that","realize"],
   ["be supposed to","remind","which"]
 ];
+const COMBOS = [
+  ["人与社会·文化传承","让步","倒装句"],
+  ["人与自然·生态保护","目的","现在完成时"],
+  ["人与自我·成长感悟","条件","定语从句"],
+  ["人与社会·科技发展","因果","名词性从句"],
+  ["人与自然·自然景观","时间","过去完成时"],
+  ["人与自我·习惯养成","祈使或建议","现在完成进行时"],
+  ["人与社会·社区生活","结果","分词作状语"],
+  ["人与自我·兴趣志向","递进","形式主语 it"]
+];
 const DEFAULT_SETTINGS = { base: PRESETS[0].base, model: PRESETS[0].model, key: "" };
 const MAX_WORDS = 10, MAX_HISTORY = 30;
 
@@ -501,6 +511,7 @@ const state = {
   count: 1,
   userPickedCount: false,
   difficulty: "adv",
+  lastCombos: [],
   settings: Object.assign({}, DEFAULT_SETTINGS, store.get("hy_settings", {})),
   history: store.get("hy_history", []),
   generating: false,
@@ -644,7 +655,7 @@ function updateDiffUI(){
   for(let i = 0; i < btns.length; i++) btns[i].classList.toggle("active", (i === 0) === (state.difficulty === "base"));
   $("#diffHint").textContent = state.difficulty === "base"
     ? "基础难度：句式规范、贴近生活，适合夯实基础"
-    : "高阶难度：内容丰富、句型综合，适合冲刺提分";
+    : "高阶难度：对标真题、句型综合，词汇不超纲，适合冲刺提分";
 }
 
 /* ================= settings ================= */
@@ -697,28 +708,78 @@ document.addEventListener("keydown", e => { if(e.key === "Escape") closeSettings
 function buildMessages(words, n){
   const adv = state.difficulty !== "base";
   const sys = adv
-    ? "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨，句子内容丰富、语义层次分明、富有文学质感与思想深度，难度精准贴合上海高考中较难的翻译题。"
+    ? "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨，内容与句式贴近上海高考真题水平，词汇绝不超纲。"
     : "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨、句式规范清晰，难度贴合上海高考基础题，适合基础薄弱的学生练手。";
   const user = "请根据以下单词/短语，命制 " + n + " 道上海高考英语\u201C中译英\u201D翻译题。\n\n" +
 "给定单词：" + words.join("、") + "\n\n" +
+"【命题总则】严格对标上海高考翻译题考点：语法结构、词汇搭配、时态和语态、逻辑表达、文化转换、语言地道性、多样句式、习语使用、简洁表达。动笔前先整体规划：为每道题预分配互不相同的主题语境、句间逻辑关系与核心句型，确保整批题目多变、绝不雷同。\n" +
 "命题要求：\n" +
 "1. 每题为一个中文句子，句末用圆括号标注英文提示词；提示词须取自上述给定单词（用原形），且所有给定单词都必须被用到（可合理分布在不同题目中）。参考答案中所给词可按语法规则作词形变化（时态、语态、单复数、非谓语形式等）或词性转换，但不得改写为派生词（例如不得加词缀把 success 写成 successful、把 happy 写成 happiness），且所给词在整句答案中只能出现一次。\n" +
-"2. " + (adv
-  ? "中文句子内容要丰富，有一定的文学质感或思想深度，主题可取自坚持与成长、人文关怀、社会观察、科技精神、文化传承等；句子须由多个语义层次构成（如\u201C让步/条件 + 行动 + 状态 + 目的/结果\u201D），句长约 25\u201345 字，逻辑通顺、积极向上，各题题材尽量不重复。参考例句的水准：纵使天寒地冻，树木也从不放弃生长，依然默默挺立，静候春光。（cease）"
-  : "中文句长约 15\u201330 字，内容积极向上、逻辑通顺、贴近学习生活或社会话题，句式清晰规范，各题题材尽量不重复。") + "\n" +
-"3. " + (adv
-  ? "难度对齐上海高考中较难的翻译题：参考答案约 20\u201335 词，词汇以上海高考考纲范围为主、避免生僻词；每题须综合、自然地运用至少两个核心语法或高级表达（如让步状语从句、倒装句、强调句、非谓语动词与分词短语作伴随状语、定语从句、名词性从句、虚拟语气、形式主语 it、并列结构、独立主格等），且各题所用句型尽量多样、彼此不重复。"
-  : "难度对齐上海高考基础翻译题：参考答案约 10\u201320 词，词汇以上海高考考纲范围为主，避免生僻词；每题须自然体现至少一个高考核心语法或常用句型（如定语从句、名词性从句、非谓语动词、倒装句、强调句、虚拟语气、形式主语 it、分词作状语等）。") + "\n" +
+"2. 多样性强制分配：按题号依次采用下列\u201C主题语境｜句间逻辑｜核心句型\u201D组合，不得重复、不得对调：①人与社会·文化传承｜让步｜倒装句；②人与自然·生态保护｜目的｜现在完成时；③人与自我·成长感悟｜条件｜定语从句；④人与社会·科技发展｜因果｜名词性从句；⑤人与自然·自然景观｜时间｜过去完成时；⑥人与自我·习惯养成｜祈使或建议｜现在完成进行时；⑦人与社会·社区生活｜结果｜分词作状语；⑧人与自我·兴趣志向｜递进｜形式主语 it。第 k 题必须采用第 k 个组合（题数超过 8 时循环取用，但具体场景必须全新）；同一批次各题的主题与场景严禁雷同，内容积极向上、逻辑通顺。语法边界：上海高考翻译不涉及虚拟语气，严禁使用；注重时态的合理运用与搭配，答案应体现下列时态之一或其正确组合：一般现在时、现在完成时、一般过去时、现在完成进行时、过去完成时。\n" +
+"3. 语言特点：中文可适度采用四字格或习语化措辞（如\u201C多措并举\u201D\u201C细水长流\u201D\u201C转危为机\u201D），英文参考答案须地道、简洁，时态与语态恰当，体现高频固定搭配，鼓励自然融入习语与文化转换。\n" +
 "4. " + (adv
+  ? "难度对标上海高考真题水平：中文句长约 20\u201340 字、语义层次自然（参考：纵使天寒地冻，树木也从不放弃生长，依然默默挺立，静候春光。cease）；参考答案约 15\u201330 词，须综合、自然地运用至少两个核心语法或高级表达；词汇严格限定在考纲范围内，严禁超纲词。"
+  : "难度对齐上海高考基础翻译题：中文句长约 15\u201330 字、句式清晰规范、贴近学习生活或社会话题；参考答案约 10\u201320 词，须自然体现至少一个核心语法或常用句型，词汇以考纲为主、避免生僻词。") + "\n" +
+"5. " + (adv
   ? "参考答案必须语法完全正确、表达地道，与中文句意严格对应，完整再现原句的各个语义层次与语言气势，不得简化漏译。"
   : "参考答案必须语法完全正确、表达地道，与中文句意严格对应。") + "\n" +
-"5. 知识点讲解：逐一点明本题考查的核心词组、句型与语法点，给出简明解析，并可附一条易错提醒；同时务必列出该提示词在上海高考中高频出现的固定搭配（Collocations，每题 1\u20133 个，含短语或句型框架），每个搭配用『』括起（例如『insist on doing sth.』），以便页面高亮显示。\n\n" +
+"6. 知识点讲解：先用一句话点明该题实际采用的主题、逻辑与句型（须与第 2 条的分配组合完全一致），再逐一点明考查的核心词组、句型与语法点，给出简明解析，并可附一条易错提醒；同时务必列出该提示词在上海高考中高频出现的固定搭配（Collocations，每题 1\u20133 个，含短语或句型框架），每个搭配用『』括起、『』内附中文翻译且每个搭配单独成行（例如『insist on doing sth. 坚持做某事』），以便页面高亮显示。\n\n" +
+"参考真题风格（体会其主题、句式与词汇的多样性，严禁照抄）：\n" +
+"- 春暖花开的四月是欣赏这个南方小镇美景的最佳时机。（when）\n" +
+"- 面对网店的挑战，这个百年老店多措并举，终于转危为机，再创辉煌。（turn）\n" +
+"- 每逢节假日，我们都会去郊区露营，为的就是享受悠闲惬意的生活。（so that）\n" +
+"- 她不断尝试将书法这一元素用于京剧戏服的设计中。（employ）\n" +
+"- 这家博物馆的奇妙之处在于它将乡村的变迁、岁月的痕迹、童年的回忆融汇在一个固定的空间中。（What）\n\n" +
 "严格按照以下格式输出，不要输出任何其他内容：\n" +
 "### 第1题\n" +
+"**【命题思路】**主题：人与社会·文化传承；逻辑：让步；句型：倒装句（须与第 2 条分配给第 1 题的组合一致）\n" +
 "**【题目】**（此处为中文句子，句末括号内为英文提示词）\n" +
 "**【参考答案】**（此处为英文翻译）\n" +
 "**【知识点讲解】**（此处为讲解内容）\n" +
 "（共 " + n + " 题，依次类推）";
+  return [{ role:"system", content:sys }, { role:"user", content:user }];
+}
+
+/* ================= single-question builder ================= */
+function distribute(words, n){
+  const buckets = [];
+  for(let i = 0; i < n; i++) buckets.push([]);
+  words.forEach((w, idx) => buckets[idx % n].push(w));
+  for(let i = 0; i < n; i++) if(!buckets[i].length) buckets[i].push(words[i % words.length]);
+  return buckets;
+}
+function buildSingleMessages(params, qi, combo, bucket, prevQs){
+  const adv = params.difficulty !== "base";
+  const no = qi + 1;
+  const sys = adv
+    ? "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨，内容与句式贴近上海高考真题水平，词汇绝不超纲。"
+    : "你是一位上海市资深高中英语教研员，精通上海高考英语的命题风格与考纲词汇，专门负责命制\u201C中译英\u201D翻译题。你命制的题目语言地道、语法严谨、句式规范清晰，难度贴合上海高考基础题，适合基础薄弱的学生练手。";
+  const user = "你正在命制上海高考英语\u201C中译英\u201D翻译题的第 " + no + " 题（本批共 " + params.count + " 题，这是其中之一）。\n\n" +
+"本题的命题组合（必须严格执行，不得偏离）：\n" +
+"- 主题语境：" + combo[0] + "\n" +
+"- 句间逻辑：" + combo[1] + "\n" +
+"- 核心句型：" + combo[2] + "\n\n" +
+"给定单词（本题参考答案须全部用到，提示词以原形标注在句末括号内）：" + bucket.join(", ") + "\n\n" +
+(prevQs.length ? "本批已命制的题目（新题的内容与场景必须与它们明显不同，不得雷同的措辞、意象或场景）：\n" + prevQs.map((q, i) => (i+1) + ". " + q).join("\n") + "\n\n" : "") +
+"命题要求：\n" +
+"1. 语法边界：上海高考翻译不涉及虚拟语气，命题与参考答案中严禁使用；语法结构不得超纲，并须注重时态的合理运用与搭配——答案中应体现下列时态之一或其正确组合：一般现在时、现在完成时、一般过去时、现在完成进行时、过去完成时。\n" +
+"2. 中文句子句末用圆括号标注英文提示词（给定单词原形）；所给词可按语法规则作词形变化（时态、语态、单复数、非谓语形式等）或词性转换，但不得改写为派生词，且每个所给词在答案句中只能出现一次。中文题干正文必须全部使用中文，除句末括号内的英文提示词外，不得出现任何英文字母或单词。\n" +
+"3. 中文可适度采用四字格或习语化措辞，英文参考答案须地道、简洁，时态与语态恰当，体现高频固定搭配，可自然融入习语与文化转换。\n" +
+"4. " + (adv
+    ? "难度对标上海高考真题：中文句长约 20\u201340 字、语义层次自然，不刻意堆砌生僻文学辞藻；参考答案约 15\u201330 词；词汇严格限定在上海高考考纲范围内，严禁超纲词与生僻词；须自然运用至少两个核心语法或高级表达，且必须包含上述\u201C核心句型\u201D并体现上述\u201C句间逻辑\u201D。"
+    : "难度对齐上海高考基础翻译题：中文句长约 15\u201330 字、句式清晰规范、贴近生活；参考答案约 10\u201320 词，须自然体现上述\u201C核心句型\u201D与\u201C句间逻辑\u201D，词汇以考纲为主、避免生僻词。") + "\n" +
+"5. " + (adv
+    ? "参考答案必须语法完全正确、表达地道，与中文句意严格对应，完整再现原句的各个语义层次，不得简化漏译。"
+    : "参考答案必须语法完全正确、表达地道，与中文句意严格对应。") + "\n" +
+"6. 知识点讲解：先点明本题采用的主题、逻辑与句型（与上述组合一致），再逐一点明核心词组、句型与语法点，可附一条易错提醒；同时列出该提示词在上海高考中高频出现的固定搭配（Collocations，1\u20133 个），每个搭配单独成行，格式为『英文搭配 中文翻译』（例如『insist on doing sth. 坚持做某事』）。\n" +
+"7. 输出前自检：参考答案是否确实包含指定\u201C核心句型\u201D、体现指定\u201C句间逻辑\u201D、时态运用是否合理、是否误用虚拟语气或超纲语法；任一项不符须重写后再输出。\n\n" +
+"风格参考（均为上海高考真题，体会其难度与词汇边界，严禁照抄）：春暖花开的四月是欣赏这个南方小镇美景的最佳时机。（when）／面对网店的挑战，这个百年老店多措并举，终于转危为机，再创辉煌。（turn）／这位头发花白的外交官与老友不期而遇，脑海中浮现出那段为理想而奋斗的青春岁月。（remind）／她不断尝试将书法这一元素用于京剧戏服的设计中。（employ）\n\n" +
+"严格按照以下格式输出，不要输出任何其他内容：\n" +
+"### 第" + no + "题\n" +
+"**【命题思路】**主题：" + combo[0] + "；逻辑：" + combo[1] + "；句型：" + combo[2] + "\n" +
+"**【题目】**（此处为中文句子，句末括号内为英文提示词）\n" +
+"**【参考答案】**（此处为英文翻译）\n" +
+"**【知识点讲解】**（此处为讲解内容）\n";
   return [{ role:"system", content:sys }, { role:"user", content:user }];
 }
 
@@ -732,8 +793,8 @@ async function streamChat(opts){
     body: JSON.stringify({
       model: opts.model,
       messages: opts.messages,
-      temperature: 0.9,
-      max_tokens: 3000,
+      temperature: 1.0,
+      max_tokens: 2048,
       stream: true
     })
   });
@@ -779,15 +840,17 @@ async function streamChat(opts){
 function parseSection(seg){
   const find = re => { const m = re.exec(seg); return m ? { start:m.index, end:m.index + m[0].length } : null; };
   const marks = [
+    { key:"s", pos: find(/【命\s*题\s*思\s*路】/) },
     { key:"q", pos: find(/【题\s*目】/) },
     { key:"a", pos: find(/【参\s*考\s*答\s*案】|【答\s*案】/) },
     { key:"k", pos: find(/【知识点讲解】|【知\s*识\s*点】|【讲\s*解】/) }
   ].filter(x => x.pos).sort((x,y) => x.pos.start - y.pos.start);
-  const out = { q:"", a:"", k:"" };
+  const out = { q:"", a:"", k:"", s:"" };
   marks.forEach((m,i) => {
     const end = i + 1 < marks.length ? marks[i+1].pos.start : seg.length;
     out[m.key] = seg.slice(m.pos.end, end).trim();
   });
+  if(out.q) out.q = cleanQ(out.q);
   return out;
 }
 function parseAll(raw){
@@ -810,10 +873,28 @@ function parseAll(raw){
 }
 
 /* ================= rendering ================= */
+function cleanQ(raw){
+  let t = String(raw || "").trim();
+  let hint = "";
+  const m = t.match(/[（(][^（）()]*[A-Za-z][^（）()]*[)）]\s*$/);
+  if(m){ hint = m[0]; t = t.slice(0, m.index); }
+  t = t.replace(/[A-Za-z]+(?:[.'\-][A-Za-z]+)*/g, "");
+  t = t.replace(/\s+/g, "");
+  t = t.replace(/，+/g, "，").replace(/、+/g, "、").replace(/。+/g, "。");
+  return (t + hint).trim();
+}
 function renderK(text){
-  let h = escapeHtml(text);
+  let t = String(text);
+  t = t.replace(/』\s*[、，,;；和以及]+\s*『/g, "』\n『");
+  t = t.replace(/』\s*『/g, "』\n『");
+  let h = escapeHtml(t);
   h = h.replace(/『([^』]*)』/g, '<span class="colloc">$1</span>');
-  return h;
+  const parts = h.split(/(<span class="colloc">[\s\S]*?<\/span>)/g);
+  for(let i = 0; i < parts.length; i++){
+    if(parts[i].indexOf('<span class="colloc">') === 0) continue;
+    parts[i] = parts[i].replace(/([A-Za-z][A-Za-z.'\-]*(?:\s*(?:[+\/]|\(?[A-Za-z0-9.'\-]+\)?))+)([\u4e00-\u9fa5（）()]*)/g, '<span class="colloc">$1$2</span>');
+  }
+  return parts.join("").replace(/<\/span>[、，,;；和以及\s]+(?=<span class="colloc">)/g, "</span>\n");
 }
 function renderQ(text){
   let h = escapeHtml(text.trim());
@@ -926,15 +1007,27 @@ async function generate(){
 
   const ctrl = new AbortController();
   state.abort = ctrl;
+  const start = Math.floor(Math.random() * COMBOS.length);
+  const buckets = distribute(params.words, params.count);
+  const prevQs = [];
+  const combosUsed = [];
   try{
-    await streamChat({
-      base: state.settings.base,
-      key: state.settings.key,
-      model: state.settings.model,
-      signal: ctrl.signal,
-      messages: buildMessages(params.words, params.count),
-      onChunk(d){ state.currentRaw += d; scheduleRender(); }
-    });
+    for(let qi = 0; qi < params.count; qi++){
+      const combo = COMBOS[(start + qi) % COMBOS.length];
+      combosUsed[qi] = combo;
+      let qBuf = "";
+      await streamChat({
+        base: state.settings.base,
+        key: state.settings.key,
+        model: state.settings.model,
+        signal: ctrl.signal,
+        messages: buildSingleMessages(params, qi, combo, buckets[qi], prevQs),
+        onChunk(d){ qBuf += d; state.currentRaw += d; scheduleRender(); }
+      });
+      const blk = parseAll(qBuf);
+      if(blk.length) prevQs.push(blk[blk.length - 1].q);
+    }
+    state.lastCombos = combosUsed;
     finishGeneration();
   }catch(e){
     if(e && e.name === "AbortError"){
@@ -955,7 +1048,7 @@ function finishGeneration(aborted){
     renderFinal();
     renderToolbar(state.lastParams.words, state.blocks.length, state.lastDuration, false, state.lastParams.difficulty);
     if(!aborted || state.currentRaw.trim()){
-      pushHistory({ ts: Date.now(), words: state.lastParams.words, count: state.blocks.length, difficulty: state.lastParams.difficulty, raw: state.currentRaw });
+      pushHistory({ ts: Date.now(), words: state.lastParams.words, count: state.blocks.length, difficulty: state.lastParams.difficulty, combos: state.lastCombos, raw: state.currentRaw });
     }
   }else if(state.currentRaw.trim()){
     $("#results").innerHTML =
@@ -1032,6 +1125,7 @@ function loadHistory(i){
   state.blocks = parseAll(h.raw);
   if(!state.blocks.length){ toast("该记录无法解析"); return; }
   state.ansHidden = true;
+  state.lastCombos = h.combos || [];
   renderFinal();
   renderToolbar(h.words, state.blocks.length, null, true, h.difficulty);
   toast("已载入历史记录");
